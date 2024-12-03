@@ -73,7 +73,7 @@ def get_emails(service, query="", max_results=20):
             maxResults=max_results,
             includeSpamTrash=False
         ).execute()
-
+        print(results)
         messages = results.get('messages', [])
         if not messages:
             return []
@@ -145,5 +145,5 @@ if __name__ == "__main__":
     search_query = "from:noreply@poe.com"
 
     service = initialize_gmail_service()
-    res =  get_emails(service, search_query, 10)
+    res =  get_emails(service, search_query, 100)
     print(res)
