@@ -34,7 +34,7 @@ def main():
 
     # Set fixed search parameters for Poe verification emails
     search_query = "from:noreply@poe.com"
-    max_results = 10
+    max_results = 20
 
     # Refresh button
     if st.sidebar.button("刷新邮件"):

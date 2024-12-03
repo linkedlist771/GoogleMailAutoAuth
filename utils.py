@@ -73,7 +73,6 @@ def get_emails(service, query="", max_results=20):
             maxResults=max_results,
             includeSpamTrash=False
         ).execute()
-        print(results)
         messages = results.get('messages', [])
         if not messages:
             return []
@@ -98,6 +97,7 @@ def get_email_details(service, email_id):
     """Get email details"""
     try:
         msg = service.users().messages().get(userId='me', id=email_id, format='full').execute()
+        # print(msg)
         headers = msg['payload'].get('headers', [])
         subject = next((h['value'] for h in headers if h['name'].lower() == 'subject'), '无主题')
         date = next((h['value'] for h in headers if h['name'].lower() == 'date'), '无日期')
