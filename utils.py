@@ -141,5 +141,5 @@ def create_service_with_retry(creds) -> Resource:
             time.sleep(5)
 
 
-if __name__ == "__main__::
-    pass 
+if __name__ == "__main__":
+    pass
