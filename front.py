@@ -96,14 +96,55 @@ def main():
     scroll_container = st.container()
     with scroll_container:
         for entry in combined_entries:
-            with st.expander(f"验证码: {entry['code']}", expanded=True):
-                dates_text = "\n".join([f"- {date}" for date in entry['dates']])
-                st.markdown(f"""
-                **收到时间:**
-                {dates_text}
-                """)
-                st.button(f"复制验证码 {entry['code']}", key=f"copy_{entry['code']}",
-                          on_click=lambda code=entry['code']: st.write(f'验证码 {code} 已复制到剪贴板'))
+            with st.container():
+                col1, col2 = st.columns([1, 3])
+
+                with col1:
+                    st.markdown(f"""
+                    <div style='background-color: #f0f2f6; 
+                                padding: 20px; 
+                                border-radius: 10px; 
+                                text-align: center;
+                                font-size: 24px;
+                                font-weight: bold;
+                                margin: 10px 0;'>
+                        {entry['code']}
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                with col2:
+                    st.markdown("""
+                    <style>
+                        .time-container {
+                            background-color: #ffffff;
+                            padding: 10px;
+                            border-radius: 5px;
+                            margin: 10px 0;
+                        }
+                        .time-header {
+                            color: #666;
+                            font-size: 14px;
+                            margin-bottom: 5px;
+                        }
+                        .time-list {
+                            color: #333;
+                            font-size: 12px;
+                            margin: 0;
+                            padding-left: 15px;
+                        }
+                    </style>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown(f"""
+                    <div class="time-container">
+                        <div class="time-header">收到时间:</div>
+                        <ul class="time-list">
+                            {''.join([f"<li>{date}</li>" for date in entry['dates']])}
+                        </ul>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                st.markdown("<hr style='margin: 15px 0; border-color: #eee;'>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
