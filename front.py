@@ -34,7 +34,7 @@ def main():
         return
 
     search_query = "from:noreply@poe.com"
-    max_results = 20
+    max_results = 10
 
     if st.sidebar.button("刷新邮件"):
         st.session_state.service = utils.initialize_gmail_service()
