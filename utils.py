@@ -142,7 +142,7 @@ def create_service_with_retry(creds) -> Resource:
 
 
 if __name__ == "__main__":
-    search_query = "from:noreply@poe.com subject:verification"
+    search_query = "from:noreply@poe.com"
 
     service = initialize_gmail_service()
     res =  get_emails(service, search_query, 10)
