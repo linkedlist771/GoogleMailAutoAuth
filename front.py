@@ -38,16 +38,20 @@ def main():
 
     # Refresh button
     if st.sidebar.button("刷新邮件"):
+        st.session_state.service = utils.initialize_gmail_service()
+
         st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
     # If emails haven't been loaded yet, load them
     if not st.session_state.emails:
+        st.session_state.service = utils.initialize_gmail_service()
+
         st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
     if not st.session_state.emails:
         st.info("没有找到Poe验证码邮件")
         return
-
+    print( st.session_state.emails)
     # Display emails in a cleaner format
     for email in st.session_state.emails:
         code = extract_verification_code(email['content'])
