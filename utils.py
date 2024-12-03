@@ -139,3 +139,7 @@ def create_service_with_retry(creds) -> Resource:
                 raise
             print(f"创建服务失败，5秒后重试... ({attempt + 1}/3)")
             time.sleep(5)
+
+
+if __name__ == "__main__::
+    pass 

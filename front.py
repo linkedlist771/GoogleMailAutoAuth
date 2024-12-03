@@ -10,11 +10,11 @@ st.set_page_config(
 )
 
 # Initialize session state
-if 'service' not in st.session_state:
-    st.session_state.service = utils.initialize_gmail_service()
+# if 'service' not in st.session_state:
+st.session_state.service = utils.initialize_gmail_service()
 
-if 'emails' not in st.session_state:
-    st.session_state.emails = []
+# if 'emails' not in st.session_state:
+st.session_state.emails = []
 
 
 def extract_verification_code(content):
