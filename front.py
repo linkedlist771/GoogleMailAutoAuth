@@ -13,12 +13,17 @@ st.set_page_config(
 if 'service' not in st.session_state:
     st.session_state.service = utils.initialize_gmail_service()
 
+if 'emails' not in st.session_state:
+    st.session_state.emails = []
+
+
 def extract_verification_code(content):
     # Extract code from HTML content using regex
     match = re.search(r'Your Poe verification code is:[\s\S]*?(\d{6})', content)
     if match:
         return match.group(1)
     return None
+
 
 def main():
     st.title("📧 Poe Verification Codes")
@@ -33,17 +38,18 @@ def main():
 
     # Refresh button
     if st.sidebar.button("刷新邮件"):
-        st.experimental_rerun()
+        st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
-    # Get emails
-    emails = utils.get_emails(st.session_state.service, search_query, max_results)
+    # If emails haven't been loaded yet, load them
+    if not st.session_state.emails:
+        st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
-    if not emails:
+    if not st.session_state.emails:
         st.info("没有找到Poe验证码邮件")
         return
 
     # Display emails in a cleaner format
-    for email in emails:
+    for email in st.session_state.emails:
         code = extract_verification_code(email['content'])
         if code:
             with st.container():
@@ -52,6 +58,7 @@ def main():
                 - **时间:** {email['date']}
                 """)
                 st.divider()
+
 
 if __name__ == "__main__":
     main()
