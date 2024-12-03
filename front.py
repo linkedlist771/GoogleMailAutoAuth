@@ -10,18 +10,19 @@ st.set_page_config(
 )
 
 # Initialize session state
-# if 'service' not in st.session_state:
 st.session_state.service = utils.initialize_gmail_service()
-
-# if 'emails' not in st.session_state:
 st.session_state.emails = []
 
 
 def extract_verification_code(content):
-    # Extract code from HTML content using regex
-    match = re.search(r'Your Poe verification code is:[\s\S]*?(\d{6})', content)
-    if match:
-        return match.group(1)
+    # Try matching both English and Chinese format
+    en_match = re.search(r'Your Poe verification code is:[\s\S]*?(\d{6})', content)
+    cn_match = re.search(r'您的Poe验证码是：[\s\S]*?(\d{6})', content)
+
+    if en_match:
+        return en_match.group(1)
+    elif cn_match:
+        return cn_match.group(1)
     return None
 
 
@@ -32,36 +33,36 @@ def main():
         st.error("Gmail service initialization failed. Please check your credentials.")
         return
 
-    # Set fixed search parameters for Poe verification emails
     search_query = "from:noreply@poe.com"
     max_results = 20
 
-    # Refresh button
     if st.sidebar.button("刷新邮件"):
         st.session_state.service = utils.initialize_gmail_service()
-
         st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
-    # If emails haven't been loaded yet, load them
+    # Load emails if not already loaded
     if not st.session_state.emails:
         st.session_state.service = utils.initialize_gmail_service()
-
         st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
     if not st.session_state.emails:
         st.info("没有找到Poe验证码邮件")
         return
-    print( st.session_state.emails)
-    # Display emails in a cleaner format
-    for email in st.session_state.emails:
+
+    # Create columns for better layout
+    col1, col2 = st.columns(2)
+
+    # Display emails in two columns
+    for idx, email in enumerate(st.session_state.emails):
         code = extract_verification_code(email['content'])
         if code:
-            with st.container():
-                st.markdown(f"""
-                ### 验证码: {code}
-                - **时间:** {email['date']}
-                """)
-                st.divider()
+            with (col1 if idx % 2 == 0 else col2):
+                with st.container():
+                    st.markdown(f"""
+                    ### 验证码: {code}
+                    - **时间:** {email['date']}
+                    ---
+                    """)
 
 
 if __name__ == "__main__":
