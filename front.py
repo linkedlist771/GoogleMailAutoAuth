@@ -33,7 +33,7 @@ def main():
         return
 
     # Set fixed search parameters for Poe verification emails
-    search_query = "from:noreply@poe.com subject:verification"
+    search_query = "from:noreply@poe.com"
     max_results = 10
 
     # Refresh button
