@@ -28,7 +28,7 @@ def extract_verification_code(content):
 
 def main():
     st.title("📧 Poe Verification Codes")
-
+    st.markdown("# 下面的时间为美国时间")
     if st.session_state.service is None:
         st.error("Gmail service initialization failed. Please check your credentials.")
         return
