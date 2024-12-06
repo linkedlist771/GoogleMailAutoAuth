@@ -9,26 +9,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# 添加自定义CSS来创建滚动容器
-st.markdown("""
-    <style>
-        .scrollable-container {
-            height: 600px;
-            overflow-y: scroll;
-            padding: 1rem;
-            background-color: #f0f2f6;
-            border-radius: 10px;
-        }
-        .email-item {
-            background-color: white;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        }
-    </style>
-""", unsafe_allow_html=True)
-
 # Initialize session state
 st.session_state.service = utils.initialize_gmail_service()
 st.session_state.emails = []
@@ -64,25 +44,27 @@ def main():
         st.info("没有找到来自 Cloudflare 的邮件")
         return
 
-    # 创建可滚动容器
+    # 创建一个固定高度的容器
     with st.container():
-        st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
+        # 设置容器的CSS样式
+        st.markdown("""
+            <style>
+                div[data-testid="stVerticalBlock"] > div:nth-of-type(2) {
+                    height: 600px;
+                    overflow-y: auto;
+                }
+            </style>
+        """, unsafe_allow_html=True)
 
         # 展示邮件内容
         for email in st.session_state.emails:
-            date_str = email['date']
-            content = email['content']
-            cleaned_text = strip_tags(content)
-            lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
+            with st.expander(f"📩 {email['date']}", expanded=True):
+                content = email['content']
+                cleaned_text = strip_tags(content)
+                lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
 
-            # 使用自定义样式的邮件项
-            st.markdown('<div class="email-item">', unsafe_allow_html=True)
-            st.markdown(f"**收到时间:** {date_str}")
-            for line in lines:
-                st.markdown(f"- {line}")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
+                for line in lines:
+                    st.text(line)
 
 
 if __name__ == "__main__":
