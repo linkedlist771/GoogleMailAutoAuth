@@ -49,8 +49,13 @@ def main():
         content = email['content']
         cleaned_text = strip_tags(content)
 
+        # 将邮件内容按行分割
+        lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
+
         st.markdown(f"**收到时间:** {date_str}")
-        st.write(cleaned_text)
+        # 使用 Markdown 列表展示每行信息
+        for line in lines:
+            st.markdown(f"- {line}")
         st.markdown("---")
 
 if __name__ == "__main__":
