@@ -44,14 +44,19 @@ def main():
         return
 
     # 展示邮件内容，每封邮件一个独立的可展开区域
-    for email in st.session_state.emails:
+    for i, email in enumerate(st.session_state.emails):
         with st.expander(f"📩 {email['date']}", expanded=True):
             content = email['content']
             cleaned_text = strip_tags(content).replace(" ", '')
             lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
 
-            # 将邮件内容显示在一个text_area中，并设置高度(可根据需要调整)
-            st.text_area("内容", value="\n".join(lines), height=300, disabled=True)
+            st.text_area(
+                "内容",
+                value="\n".join(lines),
+                height=300,
+                disabled=True,
+                key=f"text_area_{i}"
+            )
 
 if __name__ == "__main__":
     main()
