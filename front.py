@@ -13,12 +13,10 @@ st.set_page_config(
 st.session_state.service = utils.initialize_gmail_service()
 st.session_state.emails = []
 
-
 def strip_tags(html_content):
     # 去掉所有HTML标签
     text = re.sub(r'<[^>]*>', '', html_content)
     return text.strip()
-
 
 def main():
     st.title("📧 Cloudflare Notifications")
@@ -31,6 +29,7 @@ def main():
     search_query = "from:noreply@notify.cloudflare.com"
     max_results = 10
 
+    # 刷新按钮
     if st.sidebar.button("刷新邮件 🔄"):
         st.session_state.service = utils.initialize_gmail_service()
         st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
@@ -44,28 +43,15 @@ def main():
         st.info("没有找到来自 Cloudflare 的邮件")
         return
 
-    # 创建一个固定高度的容器
-    with st.container():
-        # 设置容器的CSS样式
-        st.markdown("""
-            <style>
-                div[data-testid="stVerticalBlock"] > div:nth-of-type(2) {
-                    height: 600px;
-                    overflow-y: auto;
-                }
-            </style>
-        """, unsafe_allow_html=True)
+    # 展示邮件内容，每封邮件一个独立的可展开区域
+    for email in st.session_state.emails:
+        with st.expander(f"📩 {email['date']}", expanded=True):
+            content = email['content']
+            cleaned_text = strip_tags(content).replace(" ", '')
+            lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
 
-        # 展示邮件内容
-        for email in st.session_state.emails:
-            with st.expander(f"📩 {email['date']}", expanded=True):
-                content = email['content']
-                cleaned_text = strip_tags(content).replace(" ", '')
-                lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
-
-                for line in lines:
-                    st.text(line)
-
+            # 将邮件内容显示在一个text_area中，并设置高度(可根据需要调整)
+            st.text_area("内容", value="\n".join(lines), height=300, disabled=True)
 
 if __name__ == "__main__":
     main()
