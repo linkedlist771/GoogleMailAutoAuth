@@ -9,24 +9,23 @@ st.set_page_config(
     layout="wide"
 )
 
-# Add custom CSS for scrollable container
+# 添加自定义CSS来创建滚动容器
 st.markdown("""
     <style>
-    .scrollable-container {
-        height: 600px;
-        overflow-y: auto;
-        padding: 1rem;
-        background-color: #f0f2f6;
-        border-radius: 10px;
-        margin: 1rem 0;
-    }
-    .email-item {
-        background-color: white;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border-radius: 5px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-    }
+        .scrollable-container {
+            height: 600px;
+            overflow-y: scroll;
+            padding: 1rem;
+            background-color: #f0f2f6;
+            border-radius: 10px;
+        }
+        .email-item {
+            background-color: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -43,7 +42,6 @@ def strip_tags(html_content):
 
 def main():
     st.title("📧 Cloudflare Notifications")
-    st.markdown("### 邮件内容")
 
     if st.session_state.service is None:
         st.error("Gmail service initialization failed. Please check your credentials.")
@@ -66,10 +64,8 @@ def main():
         st.info("没有找到来自 Cloudflare 的邮件")
         return
 
-    # Create a scrollable container
-    scroll_container = st.container()
-
-    with scroll_container:
+    # 创建可滚动容器
+    with st.container():
         st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
 
         # 展示邮件内容
@@ -77,14 +73,11 @@ def main():
             date_str = email['date']
             content = email['content']
             cleaned_text = strip_tags(content)
-
-            # 将邮件内容按行分割
             lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
 
-            # Create an email item
+            # 使用自定义样式的邮件项
             st.markdown('<div class="email-item">', unsafe_allow_html=True)
             st.markdown(f"**收到时间:** {date_str}")
-            # 使用 Markdown 列表展示每行信息
             for line in lines:
                 st.markdown(f"- {line}")
             st.markdown('</div>', unsafe_allow_html=True)
