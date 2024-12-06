@@ -9,6 +9,21 @@ st.set_page_config(
     layout="wide"
 )
 
+# 自定义滚动容器样式
+scrollable_css = """
+<style>
+.scrollable-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+</style>
+"""
+st.markdown(scrollable_css, unsafe_allow_html=True)
+
 # Initialize session state
 st.session_state.service = utils.initialize_gmail_service()
 st.session_state.emails = []
@@ -43,20 +58,23 @@ def main():
         st.info("没有找到来自 Cloudflare 的邮件")
         return
 
+    # 可滚动容器开始
+    st.markdown("<div class='scrollable-container'>", unsafe_allow_html=True)
+
     # 展示邮件内容
     for email in st.session_state.emails:
         date_str = email['date']
         content = email['content']
         cleaned_text = strip_tags(content)
-
-        # 将邮件内容按行分割
         lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
 
         st.markdown(f"**收到时间:** {date_str}")
-        # 使用 Markdown 列表展示每行信息
         for line in lines:
             st.markdown(f"- {line}")
         st.markdown("---")
+
+    # 可滚动容器结束
+    st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
