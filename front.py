@@ -60,7 +60,7 @@ def main():
         for email in st.session_state.emails:
             with st.expander(f"📩 {email['date']}", expanded=True):
                 content = email['content']
-                cleaned_text = strip_tags(content)
+                cleaned_text = strip_tags(content).replace(" ", '')
                 lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
 
                 for line in lines:
