@@ -1,9 +1,12 @@
+# front.py
+import threading
+
 import streamlit as st
 import utils
 from datetime import datetime, timedelta
 import re
-from operator import itemgetter
-
+import schedule
+import time
 st.set_page_config(
     page_title="Poe Verification Codes",
     page_icon="📧",
@@ -14,6 +17,14 @@ st.set_page_config(
 st.session_state.service = utils.initialize_gmail_service()
 st.session_state.emails = []
 
+def run_scheduled_tasks():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+def refresh_token_task():
+    if 'service' in st.session_state and st.session_state.service is not None:
+        utils.refresh_token(st.session_state.service)
 
 def extract_verification_code(content):
     en_match = re.search(r'Your Poe verification code is:[\s\S]*?(\d{6})', content)
@@ -66,6 +77,11 @@ def process_emails(emails):
 
     return combined_entries
 
+# Set up the scheduled task
+schedule.every(6).days.do(refresh_token_task)
+
+# Start the scheduled tasks in a separate thread
+threading.Thread(target=run_scheduled_tasks, daemon=True).start()
 
 def main():
     st.title("📧 Poe Verification Codes")
