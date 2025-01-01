@@ -140,6 +140,14 @@ def create_service_with_retry(creds) -> Resource:
             print(f"创建服务失败，5秒后重试... ({attempt + 1}/3)")
             time.sleep(5)
 
+def refresh_token(service):
+    try:
+        # Make a simple API call, like getting user profile
+        service.users().getProfile(userId='me').execute()
+        print("Token refreshed successfully")
+    except Exception as e:
+        print(f"Error refreshing token: {e}")
+
 
 if __name__ == "__main__":
     search_query = "from:noreply@poe.com"
