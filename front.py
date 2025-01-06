@@ -1,5 +1,6 @@
 # front.py
 import threading
+import html
 
 import streamlit as st
 import utils
@@ -84,14 +85,22 @@ schedule.every(6).days.do(refresh_token_task)
 threading.Thread(target=run_scheduled_tasks, daemon=True).start()
 
 def main():
-    st.title("📧 Poe Verification Codes")
+    st.title("📧 Verification Codes")
     st.markdown("### 美国时间 (UTC-4)")
+
+    # 添加切换按钮
+    email_source = st.sidebar.radio(
+        "选择邮件来源",
+        ["Poe", "Microsoft"],
+        format_func=lambda x: "Poe验证码" if x == "Poe" else "Microsoft验证码"
+    )
 
     if st.session_state.service is None:
         st.error("Gmail service initialization failed. Please check your credentials.")
         return
 
-    search_query = "from:noreply@poe.com"
+    # 根据选择设置不同的搜索条件
+    search_query = "from:noreply@poe.com" if email_source == "Poe" else "from:account-security-noreply@accountprotection.microsoft.com"
     max_results = 10
 
     if st.sidebar.button("刷新邮件 🔄"):
@@ -103,12 +112,27 @@ def main():
         st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
     if not st.session_state.emails:
-        st.info("没有找到Poe验证码邮件")
+        st.info(f"没有找到{'Poe' if email_source == 'Poe' else 'Microsoft'}验证码邮件")
         return
 
-    combined_entries = process_emails(st.session_state.emails)
+    if email_source == "Poe":
+        display_poe_codes(st.session_state.emails)
+    else:
+        display_microsoft_codes(st.session_state.emails)
 
-    # Create a container with custom CSS for scrolling
+# 添加新的函数来显示Microsoft邮件
+def display_microsoft_codes(emails):
+    for email in emails:
+        with st.container():
+            st.markdown("---")
+            st.markdown(f"**收到时间:** {email['date']}")
+            # 解码并显示原始内容
+            content = html.unescape(email['content'])
+            st.markdown(content, unsafe_allow_html=True)
+
+# 将原来的显示逻辑移到新函数中
+def display_poe_codes(emails):
+    combined_entries = process_emails(emails)
     scroll_container = st.container()
     with scroll_container:
         for entry in combined_entries:
