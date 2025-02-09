@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
+
 def initialize_gmail_service():
     """Initialize and return Gmail service"""
     creds = None
@@ -26,15 +27,28 @@ def initialize_gmail_service():
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
+                # 保存刷新后的凭据
+                with open('token.json', 'w') as token:
+                    token.write(creds.to_json())
             except Exception as e:
                 print(f"刷新令牌失败: {e}")
-                os.remove('token.json')
-                return None
-        else:
+                # 不要立即删除token.json，可以尝试重新授权
+                creds = None
+
+        # 如果刷新失败或没有可用的凭据，进行新的授权流程
+        if not creds:
             try:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
+                    'credentials.json',
+                    SCOPES,
+                    # 确保请求offline access以获取refresh_token
+                    redirect_uri='urn:ietf:wg:oauth:2.0:oob'
+                )
+                # 设置访问类型为offline以获取refresh_token
+                flow.run_local_server(port=0, access_type='offline', prompt='consent')
+                creds = flow.credentials
+
+                # 保存包含refresh_token的凭据
                 with open('token.json', 'w') as token:
                     token.write(creds.to_json())
             except Exception as e:
