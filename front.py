@@ -132,6 +132,19 @@ def display_microsoft_codes(emails):
 
 # 将原来的显示逻辑移到新函数中
 def display_poe_codes(emails):
+    # 只展示一个居中的#h1 : POE 自动验证码已经取消， 如果需要自动验证，连续群主登记使用
+    st.markdown("""
+    <div style='background-color: #f0f2f6;
+                padding: 20px;  
+                border-radius: 10px;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                margin: 10px 0;'>
+        POE 自动验证码已经取消， 如果需要自动验证，连续群主登记使用
+    </div>
+    """, unsafe_allow_html=True)
+    return
     combined_entries = process_emails(emails)
     scroll_container = st.container()
     with scroll_container:
