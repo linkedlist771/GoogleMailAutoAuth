@@ -139,9 +139,10 @@ def display_poe_codes(emails):
                 border-radius: 10px;
                 text-align: center;
                 font-size: 24px;
+                font-color: red;
                 font-weight: bold;
                 margin: 10px 0;'>
-        POE 自动验证码已经取消， 如果需要自动验证，连续群主登记使用
+        POE 自动验证码已经取消， 如果登录官网使用，连续群主登记使用
     </div>
     """, unsafe_allow_html=True)
     return
