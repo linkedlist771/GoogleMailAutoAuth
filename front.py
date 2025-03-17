@@ -86,120 +86,102 @@ threading.Thread(target=run_scheduled_tasks, daemon=True).start()
 
 def main():
     st.title("📧 Verification Codes")
-    st.markdown("### 美国时间 (UTC-4)")
-
-    # 添加切换按钮
+    
+    # Use a more prominent container for the time display
+    with st.container():
+        current_time = datetime.now() - timedelta(hours=4)  # UTC-4
+        st.subheader(f"🕒 Current Time (UTC-4): {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Move email source selection to a more prominent position with better styling
+    st.sidebar.title("Settings")
     email_source = st.sidebar.radio(
-        "选择邮件来源",
+        "Select Email Source",
         ["Poe", "Microsoft"],
-        format_func=lambda x: "Poe验证码" if x == "Poe" else "Microsoft验证码"
+        format_func=lambda x: "Poe Verification Codes" if x == "Poe" else "Microsoft Verification Codes",
+        index=0
     )
+
+    # Add a divider in the sidebar
+    st.sidebar.divider()
+    
+    # Better refresh button with status indicator
+    if st.sidebar.button("🔄 Refresh Emails", use_container_width=True):
+        with st.sidebar.status("Refreshing emails...", expanded=True) as status:
+            st.session_state.service = utils.initialize_gmail_service()
+            st.session_state.emails = utils.get_emails(st.session_state.service, 
+                                                      "from:noreply@poe.com" if email_source == "Poe" else 
+                                                      "from:account-security-noreply@accountprotection.microsoft.com", 
+                                                      10)
+            status.update(label="Refresh complete!", state="complete")
 
     if st.session_state.service is None:
         st.error("Gmail service initialization failed. Please check your credentials.")
         return
 
-    # 根据选择设置不同的搜索条件
+    # Set search query based on selection
     search_query = "from:noreply@poe.com" if email_source == "Poe" else "from:account-security-noreply@accountprotection.microsoft.com"
     max_results = 10
 
-    if st.sidebar.button("刷新邮件 🔄"):
-        st.session_state.service = utils.initialize_gmail_service()
-        st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
+    # Initialize emails if not already done
+    if not st.session_state.emails:
+        with st.status("Loading emails...", expanded=True) as status:
+            st.session_state.service = utils.initialize_gmail_service()
+            st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
+            status.update(label="Emails loaded!", state="complete")
 
     if not st.session_state.emails:
-        st.session_state.service = utils.initialize_gmail_service()
-        st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
-
-    if not st.session_state.emails:
-        st.info(f"没有找到{'Poe' if email_source == 'Poe' else 'Microsoft'}验证码邮件")
+        st.info(f"No {'Poe' if email_source == 'Poe' else 'Microsoft'} verification code emails found")
         return
 
+    # Display a header for the results section
+    st.header(f"{'Poe' if email_source == 'Poe' else 'Microsoft'} Verification Codes")
+    st.divider()
+    
+    # Display emails based on selection
     if email_source == "Poe":
         display_poe_codes(st.session_state.emails)
     else:
         display_microsoft_codes(st.session_state.emails)
 
-# 添加新的函数来显示Microsoft邮件
 def display_microsoft_codes(emails):
-    for email in emails:
-        with st.container():
-            st.markdown("---")
-            st.markdown(f"**收到时间:** {email['date']}")
-            # 解码并显示原始内容
+    for i, email in enumerate(emails):
+        with st.expander(f"Email received: {email['date']}", expanded=(i==0)):
+            # Decode and display original content
             content = html.unescape(email['content'])
             st.markdown(content, unsafe_allow_html=True)
+            st.divider()
 
-# 将原来的显示逻辑移到新函数中
 def display_poe_codes(emails):
-    # # 只展示一个居中的#h1 : POE 自动验证码已经取消， 如果需要自动验证，连续群主登记使用
-    # st.markdown("""
-    # <div style='background-color: #f0f2f6;
-    #             padding: 20px;
-    #             border-radius: 10px;
-    #             text-align: center;
-    #             font-size: 24px;
-    #             font-color: red;
-    #             font-weight: bold;
-    #             margin: 10px 0;'>
-    #     POE 自动验证码已经取消， 如果登录官网使用，连续群主登记使用
-    # </div>
-    # """, unsafe_allow_html=True)
-    # return
     combined_entries = process_emails(emails)
-    scroll_container = st.container()
-    with scroll_container:
+    
+    # Use tabs for better organization if there are multiple codes
+    if len(combined_entries) > 1:
+        tabs = st.tabs([f"Code: {entry['code']}" for entry in combined_entries])
+        
+        for i, tab in enumerate(tabs):
+            with tab:
+                display_poe_code_entry(combined_entries[i])
+    else:
+        # If only one code, display it directly
         for entry in combined_entries:
-            with st.container():
-                col1, col2 = st.columns([1, 3])
+            display_poe_code_entry(entry)
 
-                with col1:
-                    st.markdown(f"""
-                    <div style='background-color: #f0f2f6; 
-                                padding: 20px; 
-                                border-radius: 10px; 
-                                text-align: center;
-                                font-size: 24px;
-                                font-weight: bold;
-                                margin: 10px 0;'>
-                        {entry['code']}
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                with col2:
-                    st.markdown("""
-                    <style>
-                        .time-container {
-                            background-color: #ffffff;
-                            padding: 10px;
-                            border-radius: 5px;
-                            margin: 10px 0;
-                        }
-                        .time-header {
-                            color: #666;
-                            font-size: 14px;
-                            margin-bottom: 5px;
-                        }
-                        .time-list {
-                            color: #333;
-                            font-size: 12px;
-                            margin: 0;
-                            padding-left: 15px;
-                        }
-                    </style>
-                    """, unsafe_allow_html=True)
-
-                    st.markdown(f"""
-                    <div class="time-container">
-                        <div class="time-header">收到时间:</div>
-                        <ul class="time-list">
-                            {''.join([f"<li>{date}</li>" for date in entry['dates']])}
-                        </ul>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                st.markdown("<hr style='margin: 15px 0; border-color: #eee;'>", unsafe_allow_html=True)
-
+def display_poe_code_entry(entry):
+    # Use a card-like container for each code
+    with st.container():
+        # Display the code in a prominent way
+        st.markdown(f"## Verification Code")
+        
+        # Use metric for a nice display of the code
+        st.metric(label="", value=entry['code'])
+        
+        # Display timestamps in a clean table
+        st.subheader("Received Times")
+        
+        # Convert the dates to a DataFrame for better display
+        import pandas as pd
+        df = pd.DataFrame({"Received At": entry['dates']})
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
 if __name__ == "__main__":
     main()
