@@ -91,37 +91,73 @@ def main():
     current_time = datetime.now() - timedelta(hours=4)  # UTC-4
     st.subheader(f"Current US Time (UTC-4): {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Move email source selector to a more prominent position with better styling
-    st.markdown("### Select Email Source")
-    email_source = st.radio(
-        "",
-        ["Poe", "Microsoft"],
-        format_func=lambda x: "Poe Verification Codes" if x == "Poe" else "Microsoft Verification Codes",
-        horizontal=True
-    )
+    # Move email source selector to the sidebar
+    with st.sidebar:
+        st.markdown("### Email Source")
+        email_source = st.radio(
+            "",
+            ["Poe", "Microsoft"],
+            format_func=lambda x: "Poe Verification Codes" if x == "Poe" else "Microsoft Verification Codes",
+            horizontal=False
+        )
+        
+        # Add refresh button to sidebar
+        refresh = st.button("🔄 Refresh Emails", use_container_width=True)
 
     if st.session_state.service is None:
         st.error("Gmail service initialization failed. Please check your credentials.")
         return
 
-    # Add a refresh button with better styling
-    col1, col2 = st.columns([3, 1])
-    with col2:
-        refresh = st.button("🔄 Refresh Emails", use_container_width=True)
-        if refresh:
-            with st.spinner("Fetching emails..."):
-                st.session_state.service = utils.initialize_gmail_service()
-                search_query = "from:noreply@poe.com" if email_source == "Poe" else "from:account-security-noreply@accountprotection.microsoft.com"
-                max_results = 10
-                st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
-
     # Set search query based on selection
     search_query = "from:noreply@poe.com" if email_source == "Poe" else "from:account-security-noreply@accountprotection.microsoft.com"
     max_results = 10
 
+    # Handle refresh button click
+    if refresh:
+        with st.spinner("Fetching emails..."):
+            # Show a loading placeholder
+            loading_placeholder = st.empty()
+            loading_placeholder.markdown("""
+            <div style="display: flex; justify-content: center; margin: 50px 0;">
+                <div style="text-align: center;">
+                    <div class="stSpinner">
+                        <div></div><div></div><div></div><div></div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 16px; color: #666;">
+                        Loading emails, please wait...
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Fetch emails
+            st.session_state.service = utils.initialize_gmail_service()
+            st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
+            
+            # Clear loading placeholder
+            loading_placeholder.empty()
+
+    # Initial load of emails if needed
     if not st.session_state.emails:
-        st.session_state.service = utils.initialize_gmail_service()
-        st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
+        with st.spinner("Loading initial data..."):
+            loading_placeholder = st.empty()
+            loading_placeholder.markdown("""
+            <div style="display: flex; justify-content: center; margin: 50px 0;">
+                <div style="text-align: center;">
+                    <div class="stSpinner">
+                        <div></div><div></div><div></div><div></div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 16px; color: #666;">
+                        Loading initial data...
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.session_state.service = utils.initialize_gmail_service()
+            st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
+            
+            loading_placeholder.empty()
 
     if not st.session_state.emails:
         st.info(f"No {email_source} verification code emails found")
@@ -129,6 +165,9 @@ def main():
 
     # Display a divider before showing emails
     st.markdown("---")
+    
+    # Display selected email source as a header
+    st.header(f"{email_source} Verification Codes")
     
     if email_source == "Poe":
         display_poe_codes(st.session_state.emails)
