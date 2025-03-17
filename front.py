@@ -87,101 +87,112 @@ threading.Thread(target=run_scheduled_tasks, daemon=True).start()
 def main():
     st.title("📧 Verification Codes")
     
-    # Use a more prominent container for the time display
-    with st.container():
-        current_time = datetime.now() - timedelta(hours=4)  # UTC-4
-        st.subheader(f"🕒 Current Time (UTC-4): {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # Move email source selection to a more prominent position with better styling
-    st.sidebar.title("Settings")
-    email_source = st.sidebar.radio(
-        "Select Email Source",
+    # Add a cleaner header with current time
+    current_time = datetime.now() - timedelta(hours=4)  # UTC-4
+    st.subheader(f"Current US Time (UTC-4): {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # Move email source selector to a more prominent position with better styling
+    st.markdown("### Select Email Source")
+    email_source = st.radio(
+        "",
         ["Poe", "Microsoft"],
         format_func=lambda x: "Poe Verification Codes" if x == "Poe" else "Microsoft Verification Codes",
-        index=0
+        horizontal=True
     )
-
-    # Add a divider in the sidebar
-    st.sidebar.divider()
-    
-    # Better refresh button with status indicator
-    if st.sidebar.button("🔄 Refresh Emails", use_container_width=True):
-        with st.sidebar.status("Refreshing emails...", expanded=True) as status:
-            st.session_state.service = utils.initialize_gmail_service()
-            st.session_state.emails = utils.get_emails(st.session_state.service, 
-                                                      "from:noreply@poe.com" if email_source == "Poe" else 
-                                                      "from:account-security-noreply@accountprotection.microsoft.com", 
-                                                      10)
-            status.update(label="Refresh complete!", state="complete")
 
     if st.session_state.service is None:
         st.error("Gmail service initialization failed. Please check your credentials.")
         return
 
+    # Add a refresh button with better styling
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        refresh = st.button("🔄 Refresh Emails", use_container_width=True)
+        if refresh:
+            with st.spinner("Fetching emails..."):
+                st.session_state.service = utils.initialize_gmail_service()
+                search_query = "from:noreply@poe.com" if email_source == "Poe" else "from:account-security-noreply@accountprotection.microsoft.com"
+                max_results = 10
+                st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
+
     # Set search query based on selection
     search_query = "from:noreply@poe.com" if email_source == "Poe" else "from:account-security-noreply@accountprotection.microsoft.com"
     max_results = 10
 
-    # Initialize emails if not already done
     if not st.session_state.emails:
-        with st.status("Loading emails...", expanded=True) as status:
-            st.session_state.service = utils.initialize_gmail_service()
-            st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
-            status.update(label="Emails loaded!", state="complete")
+        st.session_state.service = utils.initialize_gmail_service()
+        st.session_state.emails = utils.get_emails(st.session_state.service, search_query, max_results)
 
     if not st.session_state.emails:
-        st.info(f"No {'Poe' if email_source == 'Poe' else 'Microsoft'} verification code emails found")
+        st.info(f"No {email_source} verification code emails found")
         return
 
-    # Display a header for the results section
-    st.header(f"{'Poe' if email_source == 'Poe' else 'Microsoft'} Verification Codes")
-    st.divider()
+    # Display a divider before showing emails
+    st.markdown("---")
     
-    # Display emails based on selection
     if email_source == "Poe":
         display_poe_codes(st.session_state.emails)
     else:
         display_microsoft_codes(st.session_state.emails)
 
 def display_microsoft_codes(emails):
-    for i, email in enumerate(emails):
-        with st.expander(f"Email received: {email['date']}", expanded=(i==0)):
-            # Decode and display original content
-            content = html.unescape(email['content'])
-            st.markdown(content, unsafe_allow_html=True)
-            st.divider()
+    # Sort emails by date (newest first)
+    sorted_emails = sorted(emails, key=lambda x: datetime.strptime(x['date'], '%Y-%m-%d %H:%M:%S'), reverse=True)
+    
+    for email in sorted_emails:
+        with st.expander(f"Email received: {email['date']}", expanded=True):
+            # Create a card-like container for each email
+            st.markdown("""
+            <style>
+            .email-card {
+                background-color: #f8f9fa;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 10px;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            with st.container():
+                st.markdown(f"<div class='email-card'>", unsafe_allow_html=True)
+                # Decode and display original content
+                content = html.unescape(email['content'])
+                st.markdown(content, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
 def display_poe_codes(emails):
     combined_entries = process_emails(emails)
     
-    # Use tabs for better organization if there are multiple codes
-    if len(combined_entries) > 1:
-        tabs = st.tabs([f"Code: {entry['code']}" for entry in combined_entries])
-        
-        for i, tab in enumerate(tabs):
-            with tab:
-                display_poe_code_entry(combined_entries[i])
-    else:
-        # If only one code, display it directly
-        for entry in combined_entries:
-            display_poe_code_entry(entry)
-
-def display_poe_code_entry(entry):
-    # Use a card-like container for each code
-    with st.container():
-        # Display the code in a prominent way
-        st.markdown(f"## Verification Code")
-        
-        # Use metric for a nice display of the code
-        st.metric(label="", value=entry['code'])
-        
-        # Display timestamps in a clean table
-        st.subheader("Received Times")
-        
-        # Convert the dates to a DataFrame for better display
-        import pandas as pd
-        df = pd.DataFrame({"Received At": entry['dates']})
-        st.dataframe(df, use_container_width=True, hide_index=True)
+    # Use Streamlit's built-in card component
+    for entry in combined_entries:
+        with st.container():
+            # Create a nicer card layout
+            st.markdown("""
+            <style>
+            .code-card {
+                background-color: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("<div class='code-card'>", unsafe_allow_html=True)
+            
+            col1, col2 = st.columns([1, 3])
+            
+            with col1:
+                # Use Streamlit's metric component for verification code
+                st.metric("Verification Code", entry['code'])
+            
+            with col2:
+                st.subheader("Received Times:")
+                for date in entry['dates']:
+                    st.text(f"• {date}")
+            
+            st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
