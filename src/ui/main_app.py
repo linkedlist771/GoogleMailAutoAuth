@@ -634,10 +634,20 @@ class MicrosoftCodeApp:
                         border-bottom: 1px solid #f0f0f0;
                     ">{email.get('date_str', '未知时间')}</div>
                     
-                    <div style="
+                    <pre style="
+                        background: #f8f9fa;
+                        padding: 1rem;
+                        border-radius: 6px;
+                        overflow-x: auto;
+                        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        color: #333;
+                        border: 1px solid #e9ecef;
                         white-space: pre-wrap;
                         word-wrap: break-word;
-                    ">{content}</div>
+                        margin: 0;
+                    "><code>{content}</code></pre>
                 </div>
                 ''', unsafe_allow_html=True)
         
@@ -894,10 +904,20 @@ class MicrosoftCodeApp:
                         border-bottom: 1px solid #f0f0f0;
                     ">{email.get('date_str', '未知时间')}</div>
                     
-                    <div style="
+                    <pre style="
+                        background: #f8f9fa;
+                        padding: 1rem;
+                        border-radius: 6px;
+                        overflow-x: auto;
+                        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        color: #333;
+                        border: 1px solid #e9ecef;
                         white-space: pre-wrap;
                         word-wrap: break-word;
-                    ">{content}</div>
+                        margin: 0;
+                    "><code>{content}</code></pre>
                 </div>
                 ''', unsafe_allow_html=True)
         
