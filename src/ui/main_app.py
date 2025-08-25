@@ -613,6 +613,18 @@ class MicrosoftCodeApp:
         with st.expander(f"📧 查看邮件内容 ({len(entry['emails'])} 封)", expanded=False):
             for i, email in enumerate(entry['emails']):
                 content = email.get('content', '未找到邮件内容')
+                subject = email.get('subject', '无主题')
+                from_addr = email.get('from', '未知发件人')
+                
+                # 确保内容不为空且进行HTML转义
+                if not content or content.strip() == '':
+                    content = '邮件内容为空'
+                else:
+                    # 对HTML特殊字符进行转义，防止渲染问题
+                    content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                    # 限制内容长度，避免过长的内容影响显示
+                    if len(content) > 5000:
+                        content = content[:5000] + '\n\n... (内容已截断，完整内容请查看原邮件)'
                 
                 st.markdown(f'''
                 <div style="
@@ -629,16 +641,19 @@ class MicrosoftCodeApp:
                     <div style="
                         font-size: 0.8rem;
                         color: {theme['text_muted']};
-                        margin-bottom: 0.5rem;
-                        padding-bottom: 0.5rem;
+                        margin-bottom: 0.8rem;
+                        padding-bottom: 0.8rem;
                         border-bottom: 1px solid #f0f0f0;
-                    ">{email.get('date_str', '未知时间')}</div>
+                    ">
+                        <div><strong>时间:</strong> {email.get('date_str', '未知时间')}</div>
+                        <div style="margin-top: 0.3rem;"><strong>主题:</strong> {subject}</div>
+                        <div style="margin-top: 0.3rem;"><strong>发件人:</strong> {from_addr}</div>
+                    </div>
                     
-                    <pre style="
+                    <div style="
                         background: #f8f9fa;
                         padding: 1rem;
                         border-radius: 6px;
-                        overflow-x: auto;
                         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                         font-size: 0.85rem;
                         line-height: 1.4;
@@ -646,8 +661,9 @@ class MicrosoftCodeApp:
                         border: 1px solid #e9ecef;
                         white-space: pre-wrap;
                         word-wrap: break-word;
-                        margin: 0;
-                    "><code>{content}</code></pre>
+                        max-height: 400px;
+                        overflow-y: auto;
+                    ">{content}</div>
                 </div>
                 ''', unsafe_allow_html=True)
         
@@ -883,6 +899,18 @@ class MicrosoftCodeApp:
             for i, email in enumerate(entry['emails']):
                 # 只显示邮件内容，去掉复杂的头部
                 content = email.get('content', '未找到邮件内容')
+                subject = email.get('subject', '无主题')
+                from_addr = email.get('from', '未知发件人')
+                
+                # 确保内容不为空且进行HTML转义
+                if not content or content.strip() == '':
+                    content = '邮件内容为空'
+                else:
+                    # 对HTML特殊字符进行转义，防止渲染问题
+                    content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                    # 限制内容长度，避免过长的内容影响显示
+                    if len(content) > 5000:
+                        content = content[:5000] + '\n\n... (内容已截断，完整内容请查看原邮件)'
                 
                 st.markdown(f'''
                 <div style="
@@ -899,16 +927,19 @@ class MicrosoftCodeApp:
                     <div style="
                         font-size: 0.8rem;
                         color: {theme['text_muted']};
-                        margin-bottom: 0.5rem;
-                        padding-bottom: 0.5rem;
+                        margin-bottom: 0.8rem;
+                        padding-bottom: 0.8rem;
                         border-bottom: 1px solid #f0f0f0;
-                    ">{email.get('date_str', '未知时间')}</div>
+                    ">
+                        <div><strong>时间:</strong> {email.get('date_str', '未知时间')}</div>
+                        <div style="margin-top: 0.3rem;"><strong>主题:</strong> {subject}</div>
+                        <div style="margin-top: 0.3rem;"><strong>发件人:</strong> {from_addr}</div>
+                    </div>
                     
-                    <pre style="
+                    <div style="
                         background: #f8f9fa;
                         padding: 1rem;
                         border-radius: 6px;
-                        overflow-x: auto;
                         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                         font-size: 0.85rem;
                         line-height: 1.4;
@@ -916,8 +947,9 @@ class MicrosoftCodeApp:
                         border: 1px solid #e9ecef;
                         white-space: pre-wrap;
                         word-wrap: break-word;
-                        margin: 0;
-                    "><code>{content}</code></pre>
+                        max-height: 400px;
+                        overflow-y: auto;
+                    ">{content}</div>
                 </div>
                 ''', unsafe_allow_html=True)
         

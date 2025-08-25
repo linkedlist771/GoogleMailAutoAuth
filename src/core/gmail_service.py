@@ -224,14 +224,29 @@ class GmailService:
             return ""
             
         try:
+            # 如果内容很短，可能不是HTML，直接返回
+            if len(html_content.strip()) < 50:
+                return html_content.strip()
+            
             soup = BeautifulSoup(html_content, 'html.parser')
+            
             # 移除script和style标签
             for script in soup(["script", "style"]):
                 script.decompose()
-            return soup.get_text(separator='\n', strip=True)
+            
+            # 获取文本内容
+            text_content = soup.get_text(separator='\n', strip=True)
+            
+            # 如果提取的文本为空，返回原始内容的前500字符
+            if not text_content.strip():
+                return html_content[:500] + "..." if len(html_content) > 500 else html_content
+            
+            return text_content
+            
         except Exception as e:
             print(f"清理HTML内容失败: {e}")
-            return html_content
+            # 如果HTML解析失败，返回原始内容的前500字符
+            return html_content[:500] + "..." if len(html_content) > 500 else html_content
             
     def refresh_token(self):
         """刷新访问令牌"""
