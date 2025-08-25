@@ -495,119 +495,22 @@ class MicrosoftCodeApp:
             self._render_simple_code_card(entry, i)
     
     def _render_simple_code_card(self, entry: Dict, index: int):
-        """渲染简化的验证码卡片 - 只显示时间和验证码"""
-        theme = Config.THEME
-        
-        # 简化的验证码卡片
-        st.markdown(f'''
-        <div style="
-            background: {theme['card_background']};
-            border: 1px solid {theme['border_color']};
-            border-radius: 12px;
-            margin: 1rem 0;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.2s ease;
-        " class="email-card">
-            
-            <!-- 验证码显示区域 -->
-            <div style="text-align: center; margin-bottom: 1rem;">
-                <h1 style="
-                    margin: 0 0 0.5rem 0;
-                    font-size: 3.5rem;
-                    font-weight: 800;
-                    font-family: JetBrains Mono, Consolas, Monaco, monospace;
-                    color: {theme['primary_color']};
-                    letter-spacing: 0.1em;
-                    cursor: pointer;
-                    user-select: all;
-                " class="code-display" title="点击选中验证码">{entry['code']}</h1>
-                
-                <p style="
-                    margin: 0;
-                    color: {theme['text_muted']};
-                    font-size: 1.1rem;
-                    font-weight: 500;
-                ">六位安全验证码</p>
-            </div>
-            
-            <!-- 时间信息 -->
-            <div style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                background: #f8f9fa;
-                border-radius: 8px;
-                padding: 1rem;
-                margin-bottom: 1rem;
-            ">
-                <div style="flex: 1;">
-                    <span style="
-                        color: {theme['text_color']};
-                        font-weight: 600;
-                        font-size: 0.95rem;
-                    ">{entry['latest_date']}</span>
-                    <span style='margin-left: 0.5rem; background: #4CAF50; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.7rem;'>最新</span>
-                </div>
-                
-                <div style="text-align: right;">
-                    <div style="
-                        background: {theme['accent_blue']};
-                        color: white;
-                        padding: 0.3rem 0.8rem;
-                        border-radius: 20px;
-                        font-size: 0.85rem;
-                        font-weight: 500;
-                        margin-bottom: 0.3rem;
-                    ">{entry['count']} 封邮件</div>
-                </div>
-            </div>
-            
-        ''', unsafe_allow_html=True)
+        """渲染简化的验证码卡片 - 直接显示验证码"""
+        # 直接显示验证码，不用复杂的HTML
+        st.write(f"验证码: {entry['code']}")
+        st.write(f"时间: {entry['latest_date']}")
+        st.write(f"邮件数量: {entry['count']} 封")
+        st.write("---")
         
         # 如果有多个时间记录，显示时间列表
         if len(entry['dates']) > 1:
-            st.markdown(f'''
-            <div style="
-                background: #f8f9fa;
-                border-radius: 8px;
-                padding: 1rem;
-                margin-bottom: 1rem;
-            ">
-                <h4 style="
-                    margin: 0 0 0.8rem 0;
-                    color: {theme['text_color']};
-                    font-size: 1rem;
-                    font-weight: 600;
-                ">📅 接收时间记录</h4>
-            ''', unsafe_allow_html=True)
-            
-            # 显示所有时间记录
+            st.write("📅 接收时间记录:")
             for i, date in enumerate(entry['dates']):
                 is_latest = (i == 0)
-                st.markdown(f'''
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    padding: 0.5rem;
-                    margin-bottom: 0.3rem;
-                    background: {"linear-gradient(135deg, #e3f2fd, #ffffff)" if is_latest else "white"};
-                    border-radius: 6px;
-                    {"border-left: 3px solid " + theme['primary_color'] if is_latest else ""};
-                ">
-                    <div style="flex: 1;">
-                        <span style="
-                            color: {theme['text_color']};
-                            font-weight: {"600" if is_latest else "500"};
-                            font-size: 0.9rem;
-                        ">{date}</span>
-                        {"<span style='margin-left: 0.5rem; background: #4CAF50; color: white; padding: 0.1rem 0.4rem; border-radius: 8px; font-size: 0.7rem;'>最新</span>" if is_latest else ""}
-                    </div>
-                </div>
-                ''', unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+                if is_latest:
+                    st.write(f"  • {date} (最新)")
+                else:
+                    st.write(f"  • {date}")
         
         # 邮件详情展开器
         with st.expander(f"📧 查看邮件内容 ({len(entry['emails'])} 封)", expanded=False):
@@ -616,59 +519,12 @@ class MicrosoftCodeApp:
                 subject = email.get('subject', '无主题')
                 from_addr = email.get('from', '未知发件人')
                 
-                # 确保内容不为空且进行HTML转义
-                if not content or content.strip() == '':
-                    content = '邮件内容为空'
-                else:
-                    # 对HTML特殊字符进行转义，防止渲染问题
-                    content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                    # 限制内容长度，避免过长的内容影响显示
-                    if len(content) > 5000:
-                        content = content[:5000] + '\n\n... (内容已截断，完整内容请查看原邮件)'
-                
-                st.markdown(f'''
-                <div style="
-                    background: white;
-                    border: 1px solid #e1e5e9;
-                    border-radius: 8px;
-                    padding: 1rem;
-                    margin-bottom: 1rem;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                    font-size: 0.9rem;
-                    line-height: 1.6;
-                    color: {theme['text_color']};
-                ">
-                    <div style="
-                        font-size: 0.8rem;
-                        color: {theme['text_muted']};
-                        margin-bottom: 0.8rem;
-                        padding-bottom: 0.8rem;
-                        border-bottom: 1px solid #f0f0f0;
-                    ">
-                        <div><strong>时间:</strong> {email.get('date_str', '未知时间')}</div>
-                        <div style="margin-top: 0.3rem;"><strong>主题:</strong> {subject}</div>
-                        <div style="margin-top: 0.3rem;"><strong>发件人:</strong> {from_addr}</div>
-                    </div>
-                    
-                    <div style="
-                        background: #f8f9fa;
-                        padding: 1rem;
-                        border-radius: 6px;
-                        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                        font-size: 0.85rem;
-                        line-height: 1.4;
-                        color: #333;
-                        border: 1px solid #e9ecef;
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                        max-height: 400px;
-                        overflow-y: auto;
-                    ">{content}</div>
-                </div>
-                ''', unsafe_allow_html=True)
-        
-        # 关闭主卡片
-        st.markdown('</div>', unsafe_allow_html=True)
+                st.write(f"**时间:** {email.get('date_str', '未知时间')}")
+                st.write(f"**主题:** {subject}")
+                st.write(f"**发件人:** {from_addr}")
+                st.write("**邮件内容:**")
+                st.text_area(f"内容 {i+1}", content, height=200, disabled=True, key=f"email_content_{index}_{i}")
+                st.write("---")
     
     def _render_code_card(self, entry: Dict, index: int):
         """渲染单个验证码卡片"""
