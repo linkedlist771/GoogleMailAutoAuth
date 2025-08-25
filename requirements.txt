@@ -1,6 +1,24 @@
-google-auth-oauthlib
-google-auth-httplib2
-google-api-python-client
-streamlit
-beautifulsoup4
-schedule
+# Microsoft验证码管理器 - 依赖包
+
+# Google API相关
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.108.0
+
+# Web界面
+streamlit==1.28.0
+
+# HTML解析
+beautifulsoup4==4.12.2
+
+# 任务调度
+schedule==1.2.0
+
+# HTTP请求
+httplib2==0.22.0
+
+# 数据处理（可选，用于未来扩展）
+pandas==2.1.3
+
+# 日期时间处理
+python-dateutil==2.8.2
