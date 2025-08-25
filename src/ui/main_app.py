@@ -356,37 +356,7 @@ class MicrosoftCodeApp:
                 ">📊 服务状态</h3>
             ''', unsafe_allow_html=True)
             
-            # Gmail服务状态显示
-            if st.session_state.gmail_service:
-                st.markdown(f'''
-                <div style="
-                    background: linear-gradient(135deg, #4CAF50, #45a049);
-                    color: white;
-                    border-radius: 8px;
-                    padding: 0.8rem;
-                    text-align: center;
-                    margin-bottom: 0.8rem;
-                ">
-                    <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">✅</div>
-                    <div style="font-weight: 600; font-size: 0.9rem;">Gmail 服务已连接</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">连接正常，可以获取邮件</div>
-                </div>
-                ''', unsafe_allow_html=True)
-            else:
-                st.markdown(f'''
-                <div style="
-                    background: linear-gradient(135deg, #f44336, #d32f2f);
-                    color: white;
-                    border-radius: 8px;
-                    padding: 0.8rem;
-                    text-align: center;
-                    margin-bottom: 0.8rem;
-                ">
-                    <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">❌</div>
-                    <div style="font-weight: 600; font-size: 0.9rem;">Gmail 服务未连接</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">请检查配置文件</div>
-                </div>
-                ''', unsafe_allow_html=True)
+           
             
             # 最后刷新时间显示
             if st.session_state.last_refresh:
