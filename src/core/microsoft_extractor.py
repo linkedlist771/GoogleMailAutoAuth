@@ -13,11 +13,14 @@ class MicrosoftCodeExtractor:
     
     # Microsoft验证码匹配模式
     CODE_PATTERNS = [
+        r'Your single-use code is[：:\s]*(\d{6,8})',  # Microsoft英文模式
         r'安全代码[：:]\s*(\d{6,8})',  # 中文模式
         r'Security code[：:]\s*(\d{6,8})',  # 英文模式  
         r'验证码[：:]\s*(\d{6,8})',  # 通用中文
         r'verification code[：:]\s*(\d{6,8})',  # 通用英文
-        r'(\d{6,8})',  # 纯数字模式（作为备选）
+        r'code is[：:\s]*(\d{6,8})',  # 简化英文模式
+        r'(?:^|\s)(\d{6})(?:\s|$)',  # 6位数字（独立存在）
+        r'(?:^|\s)(\d{8})(?:\s|$)',  # 8位数字（独立存在）
     ]
     
     def __init__(self):
