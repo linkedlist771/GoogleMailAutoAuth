@@ -102,12 +102,9 @@ class MicrosoftCodeExtractor:
         return combined_entries
     
     def is_microsoft_email(self, from_address: str) -> bool:
-        """检查是否为Microsoft官方邮件"""
+        """检查是否为Cloudflare官方通知邮件"""
         microsoft_domains = [
-            'account-security-noreply@accountprotection.microsoft.com',
-            'noreply@account.microsoft.com',
-            'microsoft-noreply@microsoft.com',
-            'noreply@email.teams.microsoft.com'
+            'noreply@notify.cloudflare.com'
         ]
         
         if not from_address:
@@ -120,8 +117,8 @@ class EmailQueryBuilder:
     
     @staticmethod
     def build_microsoft_query() -> str:
-        """构建Microsoft验证码邮件查询"""
-        return "from:account-security-noreply@accountprotection.microsoft.com OR from:noreply@account.microsoft.com"
+        """构建Cloudflare通知邮件查询"""
+        return "from:noreply@notify.cloudflare.com"
     
     @staticmethod
     def build_date_range_query(days_back: int = 7) -> str:

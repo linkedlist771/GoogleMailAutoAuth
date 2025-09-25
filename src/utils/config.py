@@ -36,12 +36,9 @@ class Config:
     DEFAULT_MAX_RESULTS = 40
     DEFAULT_DAYS_BACK = 7
     
-    # Microsoft邮件配置
+    # Microsoft邮件配置（已改为Cloudflare通知邮箱）
     MICROSOFT_SENDERS = [
-        'account-security-noreply@accountprotection.microsoft.com',
-        'noreply@account.microsoft.com',
-        'microsoft-noreply@microsoft.com',
-        'noreply@email.teams.microsoft.com'
+        'noreply@notify.cloudflare.com'
     ]
     
     # 令牌刷新配置
