@@ -333,7 +333,7 @@ class MicrosoftCodeApp:
             refresh_clicked = st.button(
                 "🔄 刷新邮件", 
                 use_container_width=True,
-                help="点击获取最新的Microsoft验证码邮件"
+                help="点击获取最新的 Cloudflare 邮件"
             )
             
             # 服务状态区域
@@ -458,41 +458,52 @@ class MicrosoftCodeApp:
             return refresh_clicked, max_results
     
     def _render_email_list(self, emails: List[Dict]):
-        """渲染邮件列表 - 简化版本，只显示时间和验证码"""
+        """渲染邮件列表 - 显示所有 Cloudflare 邮件详情"""
         if not emails:
             st.markdown(f'''
             <div class="metric-card" style="text-align: center; padding: 2rem;">
                 <h2 style="color: {Config.THEME['text_muted']}; margin: 1rem 0;">📭</h2>
-                <h3 style="color: {Config.THEME['text_muted']}; margin: 0;">暂无Microsoft验证码邮件</h3>
+                <h3 style="color: {Config.THEME['text_muted']}; margin: 0;">暂无 Cloudflare 邮件</h3>
                 <p style="color: {Config.THEME['text_muted']}; margin: 0.5rem 0;">点击刷新按钮获取最新邮件</p>
             </div>
             ''', unsafe_allow_html=True)
             return
-        
-        # 处理邮件，提取验证码
-        processed_codes = self.code_extractor.process_emails(emails)
-        
-        if not processed_codes:
-            st.markdown(f'''
-            <div class="metric-card" style="text-align: center; padding: 2rem;">
-                <h2 style="color: {Config.THEME['warning_color']}; margin: 1rem 0;">📮</h2>
-                <h3 style="color: {Config.THEME['warning_color']}; margin: 0;">未找到有效的验证码</h3>
-                <p style="color: {Config.THEME['text_muted']}; margin: 0.5rem 0;">请检查邮件内容或尝试更新查询条件</p>
-            </div>
-            ''', unsafe_allow_html=True)
-            return
-        
+
         # 标题和统计
         st.markdown(f'''
         <div style="text-align: center; margin: 2rem 0;">
-            <h1 style="color: {Config.THEME['primary_color']}; margin: 0;">🔐 Microsoft验证码</h1>
-            <p style="color: {Config.THEME['text_muted']}; margin: 0.5rem 0; font-size: 1.2rem;">共找到 <strong>{len(processed_codes)}</strong> 个验证码</p>
+            <h1 style="color: {Config.THEME['primary_color']}; margin: 0;">📧 Cloudflare 邮件</h1>
+            <p style="color: {Config.THEME['text_muted']}; margin: 0.5rem 0; font-size: 1.2rem;">共找到 <strong>{len(emails)}</strong> 封邮件</p>
         </div>
         ''', unsafe_allow_html=True)
-        
-        # 显示简化的验证码列表
-        for i, entry in enumerate(processed_codes):
-            self._render_simple_code_card(entry, i)
+
+        # 显示每封邮件的主题、时间、发件人和内容
+        for i, email in enumerate(emails):
+            subject = email.get('subject', '无主题')
+            from_addr = email.get('from', '未知发件人')
+            date_str = email.get('date', email.get('date_str', '未知时间'))
+            content = email.get('content', '') or email.get('snippet', '')
+
+            # 保障内容显示安全与长度
+            if not content or content.strip() == '':
+                content = '邮件内容为空'
+            else:
+                content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                if len(content) > 5000:
+                    content = content[:5000] + '\n\n... (内容已截断，完整内容请查看原邮件)'
+
+            st.markdown(f'''
+            <div class="metric-card" style="margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; color: {Config.THEME['text_color']}; font-size: 1.05rem;">{subject}</h3>
+                    <span style="color: {Config.THEME['text_muted']}; font-size: 0.85rem;">{date_str}</span>
+                </div>
+                <div style="margin-top: 0.25rem; color: {Config.THEME['text_muted']}; font-size: 0.9rem;">发件人: {from_addr}</div>
+                <div style="margin-top: 0.75rem; background: #f8f9fa; border: 1px solid {Config.THEME['border_color']}; border-radius: 6px; padding: 0.9rem; white-space: pre-wrap; word-wrap: break-word;">
+                    {content}
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
     
     def _render_simple_code_card(self, entry: Dict, index: int):
         """渲染简化的验证码卡片 - 直接显示验证码"""
