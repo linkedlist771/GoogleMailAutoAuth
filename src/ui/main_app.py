@@ -484,26 +484,34 @@ class MicrosoftCodeApp:
             date_str = email.get('date', email.get('date_str', '未知时间'))
             content = email.get('content', '') or email.get('snippet', '')
 
-            # 保障内容显示安全与长度
+            # 安全地处理所有字符串，防止HTML注入和特殊字符错误
+            def safe_html_escape(text):
+                if not text:
+                    return '无内容'
+                # 转换为字符串并移除可能有问题的字符
+                text = str(text).encode('utf-8', errors='ignore').decode('utf-8', errors='ignore')
+                # HTML转义
+                text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#x27;')
+                return text
+
+            subject = safe_html_escape(subject)
+            from_addr = safe_html_escape(from_addr)
+            date_str = safe_html_escape(date_str)
+            
             if not content or content.strip() == '':
                 content = '邮件内容为空'
             else:
-                content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                if len(content) > 5000:
-                    content = content[:5000] + '\n\n... (内容已截断，完整内容请查看原邮件)'
+                content = safe_html_escape(content)
+                if len(content) > 3000:
+                    content = content[:3000] + '\n\n... (内容已截断)'
 
-            st.markdown(f'''
-            <div class="metric-card" style="margin: 1rem 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; color: {Config.THEME['text_color']}; font-size: 1.05rem;">{subject}</h3>
-                    <span style="color: {Config.THEME['text_muted']}; font-size: 0.85rem;">{date_str}</span>
-                </div>
-                <div style="margin-top: 0.25rem; color: {Config.THEME['text_muted']}; font-size: 0.9rem;">发件人: {from_addr}</div>
-                <div style="margin-top: 0.75rem; background: #f8f9fa; border: 1px solid {Config.THEME['border_color']}; border-radius: 6px; padding: 0.9rem; white-space: pre-wrap; word-wrap: break-word;">
-                    {content}
-                </div>
-            </div>
-            ''', unsafe_allow_html=True)
+            # 使用更安全的方式显示邮件
+            st.write(f"**主题:** {subject}")
+            st.write(f"**时间:** {date_str}")
+            st.write(f"**发件人:** {from_addr}")
+            st.write("**内容:**")
+            st.text_area(f"邮件内容 {i+1}", content, height=200, disabled=True, key=f"email_content_safe_{i}")
+            st.write("---")
     
     def _render_simple_code_card(self, entry: Dict, index: int):
         """渲染简化的验证码卡片 - 直接显示验证码"""
